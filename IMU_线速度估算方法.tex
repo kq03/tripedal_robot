@@ -1,0 +1,348 @@
+% IMU线速度估算技术文档 - LaTeX版本
+\documentclass[12pt,a4paper]{article}
+
+% 使用适合Overleaf的中文设置
+\usepackage[UTF8, scheme=plain]{ctex}
+% 或者使用xeCJK代替ctex
+% \usepackage{xeCJK}
+% \setCJKmainfont{SimSun} % 使用宋体
+
+\usepackage{amsmath,amssymb,amsfonts} % 数学符号
+\usepackage{graphicx} % 图片
+\usepackage{booktabs} % 表格
+\usepackage{listings} % 代码
+\usepackage{xcolor} % 颜色
+\usepackage{hyperref} % 超链接
+
+% 修改代码样式设置，避免特殊字符问题
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=single,
+    showstringspaces=false,
+    upquote=true,
+    extendedchars=true,
+    literate={*}{{\textasteriskcentered}}1
+}
+
+\title{IMU线速度估算技术文档}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{基本原理}
+
+线速度估算是机器人导航和控制的关键环节。在没有直接速度传感器的情况下，基于IMU数据的速度估算提供了一种可行方案。本文档详细介绍通过IMU加速度数据估算线速度的方法、误差控制策略和数学原理。
+
+\subsection{问题定义}
+
+在强化学习环境中，机器人观测空间包含线速度信息。然而，在实际硬件上，我们通常只有IMU提供的加速度和姿态数据，需要通过计算推导出线速度。
+
+\subsection{核心思路}
+
+线速度估算基于物理学基本原理：速度是加速度的积分。因此，我们可以将IMU测量的加速度进行积分，得到速度变化。然而，这一过程存在多种误差来源，需要应用各种技术来减少累积误差。
+
+\section{数学基础}
+
+\subsection{四元数表示与旋转}
+
+四元数是表示3D旋转的高效方法，比欧拉角更稳定，比旋转矩阵更紧凑。
+
+\subsubsection{四元数定义}
+
+四元数 $q = [q_0, q_1, q_2, q_3] = [w, x, y, z]$ 其中:
+\begin{itemize}
+    \item $w$: 实部
+    \item $x, y, z$: 虚部
+\end{itemize}
+
+单位四元数表示旋转：$w^2 + x^2 + y^2 + z^2 = 1$
+
+\subsubsection{四元数旋转公式}
+
+使用四元数对向量 $v$ 进行旋转的公式：
+
+$v' = q \otimes v \otimes q^{-1}$
+
+其中 $\otimes$ 表示四元数乘法，$q^{-1}$ 是 $q$ 的逆四元数。
+
+在代码中，这一旋转的具体实现为：
+
+\begin{lstlisting}
+def quat_rotate(q, v):
+    w, x, y, z = q
+    vx, vy, vz = v
+    
+    result = np.zeros(3)
+    result[0] = (1 - 2*y*y - 2*z*z)*vx + 2*(x*y - w*z)*vy + 2*(x*z + w*y)*vz
+    result[1] = 2*(x*y + w*z)*vx + (1 - 2*x*x - 2*z*z)*vy + 2*(y*z - w*x)*vz
+    result[2] = 2*(x*z - w*y)*vx + 2*(y*z + w*x)*vy + (1 - 2*x*x - 2*y*y)*vz
+    
+    return result
+\end{lstlisting}
+
+\subsection{积分方法}
+
+\subsubsection{基本积分公式}
+
+速度 $v$ 与加速度 $a$ 的关系：
+
+$v(t) = v(t_0) + \int_{t_0}^{t} a(\tau) d\tau$
+
+离散形式：
+
+$v_k = v_{k-1} + a_k \cdot \Delta t$
+
+\subsubsection{梯形积分法}
+
+为提高精度，可使用梯形法：
+
+$v_k = v_{k-1} + \frac{1}{2}(a_k + a_{k-1}) \cdot \Delta t$
+
+\section{重力补偿}
+
+\subsection{重力影响}
+
+IMU测量的加速度包含惯性加速度和重力加速度的综合影响。我们需要移除重力分量，只保留运动产生的加速度。
+
+\subsection{补偿方法}
+
+我们采用"直接在世界坐标系中补偿重力"的方法，步骤如下：
+
+\begin{enumerate}
+    \item 获取IMU加速度数据和姿态四元数
+    \item 使用四元数将IMU加速度转换到世界坐标系
+    \item 在世界坐标系中直接减去重力向量
+    \item 在世界坐标系中进行后续计算
+\end{enumerate}
+
+\begin{lstlisting}
+# 获取IMU数据
+linear_acc = np.array(sensors.get_linear_acceleration())  # IMU坐标系下的加速度
+quaternion, _ = sensors.read_imu()
+q0, q1, q2, q3 = quaternion  # 四元数[w, x, y, z]
+
+# 使用四元数共轭进行反向旋转（从IMU坐标系到世界坐标系）
+linear_acc_world = quat_rotate([q0, -q1, -q2, -q3], linear_acc)
+
+# 在世界坐标系中减去重力
+gravity_world = np.array([0, 0, 9.81])  # 世界坐标系下的重力向量
+linear_acc_no_gravity = linear_acc_world - gravity_world
+\end{lstlisting}
+
+与传统的"在IMU坐标系中补偿重力"方法相比，这种方法更加简洁，避免了最后还需要将速度从IMU坐标系转换到世界坐标系的步骤。
+
+\section{积分漂移问题与解决方案}
+
+\subsection{漂移原因}
+
+\begin{enumerate}
+    \item \textbf{传感器噪声}：IMU数据存在随机噪声
+    \item \textbf{采样误差}：离散采样导致积分误差
+    \item \textbf{偏置误差}：IMU传感器存在零点漂移
+    \item \textbf{积分累积}：小误差通过积分不断累加
+\end{enumerate}
+
+\subsection{解决方案}
+
+\subsubsection{低通滤波}
+
+使用低通滤波减少高频噪声：
+
+$v_{\text{filtered}} = (1 - \alpha) \cdot v_{\text{previous}} + \alpha \cdot v_{\text{current}}$
+
+其中 $\alpha$ 是滤波系数（0-1之间）。
+
+\subsubsection{零速度检测与校正}
+
+当检测到机器人可能静止时（加速度接近零），强制速度逐渐衰减至零：
+
+\begin{lstlisting}
+accel_magnitude = np.linalg.norm(linear_acc_no_gravity)
+if accel_magnitude < threshold:  # 可能静止
+    decay_factor = np.exp(-dt / time_constant)
+    velocity *= decay_factor
+\end{lstlisting}
+
+\subsubsection{速度限幅}
+
+防止速度估计发散，设定最大速度阈值：
+
+\begin{lstlisting}
+max_velocity = 2.0  # 最大速度限制
+velocity_magnitude = np.linalg.norm(velocity)
+if velocity_magnitude > max_velocity:
+    velocity = velocity * (max_velocity / velocity_magnitude)
+\end{lstlisting}
+
+\subsubsection{互补滤波}
+
+结合其他信息源（如视觉里程计、车轮编码器等）进行互补滤波。
+
+\section{实现算法流程}
+
+\subsection{完整算法步骤}
+
+\begin{enumerate}
+    \item \textbf{初始化}：设置初始速度和时间戳
+    \item \textbf{数据获取}：读取IMU加速度和姿态数据
+    \item \textbf{坐标转换}：将IMU加速度转换到世界坐标系
+    \item \textbf{重力补偿}：在世界坐标系中减去重力
+    \item \textbf{速度积分}：积分加速度得到速度增量
+    \item \textbf{滤波处理}：应用低通滤波减少噪声
+    \item \textbf{漂移校正}：检测静止状态并校正速度
+    \item \textbf{限幅保护}：防止速度估计发散
+\end{enumerate}
+
+\subsection{核心代码实现}
+
+\begin{lstlisting}
+def estimate_linear_vel():
+    global global_linear_vel, last_update_time
+    
+    # 计算时间增量
+    current_time = time.time()
+    dt = current_time - last_update_time
+    
+    # 防止dt过小或首次运行
+    if dt < 0.001:
+        return global_linear_vel.tolist()
+    
+    # 获取IMU数据
+    linear_acc = np.array(sensors.get_linear_acceleration())  # IMU坐标系下的加速度
+    quaternion, _ = sensors.read_imu()
+    q0, q1, q2, q3 = quaternion  # 四元数[w, x, y, z]
+    
+    # 使用四元数共轭进行反向旋转（从IMU坐标系到世界坐标系）
+    linear_acc_world = quat_rotate([q0, -q1, -q2, -q3], linear_acc)
+    
+    # 在世界坐标系中减去重力
+    gravity_world = np.array([0, 0, 9.81])  # 重力加速度
+    linear_acc_no_gravity = linear_acc_world - gravity_world
+    
+    # 积分计算速度变化
+    delta_v = linear_acc_no_gravity * dt
+    
+    # 低通滤波
+    alpha = 0.8
+    global_linear_vel = (1 - alpha) * global_linear_vel + alpha * (global_linear_vel + delta_v)
+    
+    # 零速度校正
+    accel_magnitude = np.linalg.norm(linear_acc_no_gravity)
+    if accel_magnitude < 0.1:
+        decay_factor = np.exp(-dt / 0.5)
+        global_linear_vel *= decay_factor
+    
+    # 速度限幅
+    max_velocity = 2.0
+    velocity_magnitude = np.linalg.norm(global_linear_vel)
+    if velocity_magnitude > max_velocity:
+        global_linear_vel = global_linear_vel * (max_velocity / velocity_magnitude)
+    
+    last_update_time = current_time
+    return global_linear_vel.tolist()  # 直接返回世界坐标系下的速度
+\end{lstlisting}
+
+\section{性能优化与参数调整}
+
+\subsection{关键参数解释}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+参数 & 描述 & 典型值 & 影响 \\
+\midrule
+alpha & 低通滤波系数 & 0.8 & 越大越信任当前测量，越小越平滑 \\
+accel\_threshold & 静止检测阈值 & 0.1 m/s² & 越小越容易被判定为静止 \\
+decay\_factor & 速度衰减系数 & exp(-dt/0.5) & 影响静止时速度归零速率 \\
+max\_velocity & 速度上限 & 2.0 m/s & 限制最大估计速度 \\
+\bottomrule
+\end{tabular}
+\caption{关键参数及其影响}
+\end{table}
+
+\subsection{调优建议}
+
+\begin{enumerate}
+    \item \textbf{增加预热阶段}：
+    在开始控制前，让机器人保持静止并校准初始状态
+
+    \item \textbf{环境适应性调整}：
+    \begin{itemize}
+        \item 平坦地面：可使用较大的alpha值
+        \item 崎岖地形：降低alpha值，增加平滑性
+    \end{itemize}
+    
+    \item \textbf{针对不同机器人调整}：
+    \begin{itemize}
+        \item 大型机器人：增大max\_velocity和降低accel\_threshold
+        \item 小型机器人：减小max\_velocity和提高accel\_threshold
+    \end{itemize}
+\end{enumerate}
+
+\section{高级扩展：卡尔曼滤波器}
+
+当前实现使用的是简化的滤波方法。更高级的实现可以考虑卡尔曼滤波器。
+
+\subsection{卡尔曼滤波原理}
+
+卡尔曼滤波器通过预测-更新循环，结合系统模型和测量值，得到最优状态估计。
+
+\subsection{应用到速度估计}
+
+\begin{enumerate}
+    \item \textbf{状态向量}：包含位置和速度
+    \item \textbf{系统模型}：描述位置和速度的演化
+    \item \textbf{测量模型}：加速度测量与状态的关系
+    \item \textbf{噪声建模}：对系统噪声和测量噪声进行建模
+\end{enumerate}
+
+\subsection{Python实现示例}
+
+\begin{lstlisting}
+def kalman_filter_velocity_estimation():
+    # 简化的卡尔曼滤波器实现
+    # 需要更详细的状态模型和噪声参数
+    pass
+\end{lstlisting}
+
+\section{常见问题与解决方案}
+
+\subsection{速度漂移}
+
+\textbf{症状}：静止时速度不为零，或速度持续增长\\
+\textbf{解决}：增强零速度检测，调整decay\_factor
+
+\subsection{过度平滑}
+
+\textbf{症状}：速度响应滞后，无法反映快速变化\\
+\textbf{解决}：增大alpha值，减小滤波强度
+
+\subsection{噪声干扰}
+
+\textbf{症状}：速度估计抖动明显\\
+\textbf{解决}：减小alpha值，增强滤波效果
+
+\section{结论与建议}
+
+线速度估算是机器人控制系统的重要组成部分。通过合理的数学模型和滤波技术，可以从IMU数据中获得较为可靠的速度估计。由于积分漂移的客观存在，建议：
+
+\begin{enumerate}
+    \item 定期重置或校准速度估计
+    \item 结合多种信息源（如有）进行融合
+    \item 针对具体应用场景调整参数
+    \item 考虑更高级的滤波方法（如卡尔曼滤波）
+    \item 实时监测估计质量，发现异常及时干预
+\end{enumerate}
+
+通过以上技术和方法，可以有效提高线速度估算的准确性和稳定性，为机器人控制提供可靠的速度反馈。
+
+\end{document} 

@@ -98,3 +98,169 @@ Isaac Lab development initiated from the [Orbit](https://isaac-orbit.github.io/)
    doi={10.1109/LRA.2023.3270034}
 }
 ```
+
+# IMU传感器使用指南
+
+本文档提供关于Yesense IMU传感器的使用方法、测试脚本说明和常见问题解决方案。
+
+## 1. 硬件介绍
+
+Yesense IMU（惯性测量单元）是一种精密的姿态传感器，可提供：
+- 四元数姿态数据
+- 角速度数据
+- 加速度数据
+
+该传感器通过USB接口连接到计算机，在Linux系统中表现为串口设备。
+
+## 2. 环境准备
+
+### 2.1 Linux环境
+
+#### 查找IMU设备
+连接IMU后，设备通常会被识别为`/dev/ttyUSB0`或类似端口，可以通过以下命令查找：
+```bash
+# 查看所有USB串口设备
+ls /dev/ttyUSB*
+
+# 或者查看系统日志中的串口信息
+dmesg | grep tty
+```
+
+#### 设置权限
+确保当前用户有权限访问串口设备：
+```bash
+# 临时设置权限
+sudo chmod 666 /dev/ttyUSB0
+
+# 永久解决（添加用户到dialout组）
+sudo usermod -a -G dialout $USER
+# 添加后需要重新登录系统生效
+```
+
+### 2.2 依赖安装
+确保安装了必要的Python库：
+```bash
+pip install numpy pyserial
+```
+
+## 3. 测试IMU
+
+### 3.1 使用测试脚本
+
+我们提供了`try_IMU.py`脚本用于测试IMU连接和数据读取：
+
+```bash
+# 使用默认端口(/dev/ttyUSB0)运行
+python try_IMU.py
+
+# 指定端口运行
+python try_IMU.py /dev/ttyUSB1
+
+# 指定端口和波特率
+python try_IMU.py /dev/ttyUSB0 460800
+```
+
+### 3.2 测试输出说明
+
+测试脚本会显示以下数据：
+- **四元数**：表示当前IMU的姿态（q0, q1, q2, q3）
+- **角速度**：IMU的旋转速率，单位为弧度/秒（rad/s）
+- **加速度**：IMU感知到的加速度，单位为米/秒²（m/s²）
+
+正常情况下，静止放置的IMU应该显示：
+- 四元数接近[1,0,0,0]（或随姿态变化）
+- 角速度接近[0,0,0]
+- 加速度接近[0,0,1]（z轴受重力影响）
+
+## 4. 在机器人项目中使用
+
+### 4.1 导入和初始化
+
+```python
+from tlr_control.src.sensor import SensorInterface
+
+# 初始化传感器
+sensors = SensorInterface(imu_port='/dev/ttyUSB0')
+
+# 读取IMU数据
+quaternion, angular_vel = sensors.read_imu()
+linear_acc = sensors.get_linear_acceleration()
+```
+
+### 4.2 主循环中使用
+
+```python
+while True:
+    # 读取IMU数据
+    quaternion, angular_vel = sensors.read_imu()
+    
+    # 使用数据进行姿态控制...
+    
+    # 保持100Hz的控制频率
+    time.sleep(0.01)
+```
+
+## 5. 常见问题解决
+
+### 5.1 找不到设备
+
+症状：`无法打开端口`或`端口不存在`
+
+解决方法：
+1. 检查IMU是否正确连接
+2. 检查端口名称：`ls /dev/ttyUSB*`
+3. 尝试重新插拔USB
+
+### 5.2 权限问题
+
+症状：`权限被拒绝`
+
+解决方法：
+```bash
+sudo chmod 666 /dev/ttyUSB0
+```
+
+### 5.3 数据异常或不稳定
+
+症状：数据跳变或不合理值
+
+解决方法：
+1. 检查线缆连接是否稳定
+2. 确认波特率设置正确（默认460800）
+3. 远离强磁场或电磁干扰源
+
+### 5.4 多设备冲突
+
+症状：多个设备使用同一COM口
+
+解决方法：
+1. 使用`lsof | grep ttyUSB`查看占用情况
+2. 确保同一时间只有一个程序访问IMU
+
+## 6. 改进建议
+
+### 6.1 代码改进
+
+修复传感器读取中的潜在问题，如`read_all()`可能返回`None`：
+```python
+# 在sensor.py中的read_imu()方法中修改
+data = self.imu_conn.read_all() or b''  # 确保data不是None
+```
+
+### 6.2 健壮性增强
+
+添加断线重连机制：
+```python
+def reconnect_imu(self):
+    if self.imu_conn:
+        self.imu_conn.close()
+    try:
+        self.setup_imu()
+        return True
+    except:
+        return False
+```
+
+## 7. 技术支持
+
+如有问题，请联系项目维护人员或参考Yesense官方文档。
