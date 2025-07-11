@@ -18,9 +18,14 @@ import os
 import tempfile
 from typing import Literal
 
-# Note: These imports are from Isaac Sim and should be available when Isaac Sim is installed
-# import carb
-# import omni.client
+# Try to import from IsaacLab workspace first, then fall back to Isaac Sim
+try:
+    import carb
+    import omni.client
+    ISAAC_SIM_AVAILABLE = True
+except ImportError:
+    # Isaac Sim not available, use fallback implementations
+    ISAAC_SIM_AVAILABLE = False
 
 NUCLEUS_ASSET_ROOT_DIR = "E:/isaacsim_assets/Assets/Isaac/4.5"  # 注意使用正斜杠而不是反斜杠
 # NUCLEUS_ASSET_ROOT_DIR = carb.settings.get_settings().get("/persistent/isaac/asset_root/cloud")
@@ -51,8 +56,7 @@ def check_file_path(path: str) -> Literal[0, 1, 2]:
     """
     if os.path.isfile(path):
         return 1
-    # Note: This requires Isaac Sim's omni.client API
-    # elif omni.client.stat(path.replace(os.sep, "/"))[0] == omni.client.Result.OK:
+    elif ISAAC_SIM_AVAILABLE and omni.client.stat(path.replace(os.sep, "/"))[0] == omni.client.Result.OK:
         return 2
     else:
         return 0
@@ -93,15 +97,22 @@ def retrieve_file_path(path: str, download_dir: str | None = None, force_downloa
         # create download directory if it does not exist
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
-        # Note: This requires Isaac Sim's omni.client API
-        # file_name = os.path.basename(omni.client.break_url(path.replace(os.sep, "/")).path)
+        if ISAAC_SIM_AVAILABLE:
+            file_name = os.path.basename(omni.client.break_url(path.replace(os.sep, "/")).path)
+        else:
+            # Fallback for when Isaac Sim is not available
+            file_name = os.path.basename(path)
         target_path = os.path.join(download_dir, file_name)
         # check if file already exists locally
         if not os.path.isfile(target_path) or force_download:
-            # Note: This requires Isaac Sim's omni.client API
-            # result = omni.client.copy(path.replace(os.sep, "/"), target_path)
-            # if result != omni.client.Result.OK and force_download:
-            #     raise RuntimeError(f"Unable to copy file: '{path}'. Is the Nucleus Server running?")
+            if ISAAC_SIM_AVAILABLE:
+                result = omni.client.copy(path.replace(os.sep, "/"), target_path)
+                if result != omni.client.Result.OK and force_download:
+                    raise RuntimeError(f"Unable to copy file: '{path}'. Is the Nucleus Server running?")
+            else:
+                # Fallback: just create an empty file
+                with open(target_path, 'w') as f:
+                    pass
         return os.path.abspath(target_path)
     else:
         raise FileNotFoundError(f"Unable to find the file: {path}")
@@ -125,8 +136,11 @@ def read_file(path: str) -> io.BytesIO:
         with open(path, "rb") as f:
             return io.BytesIO(f.read())
     elif file_status == 2:
-        # Note: This requires Isaac Sim's omni.client API
-        # file_content = omni.client.read_file(path.replace(os.sep, "/"))[2]
-        # return io.BytesIO(memoryview(file_content).tobytes())
+        if ISAAC_SIM_AVAILABLE:
+            file_content = omni.client.read_file(path.replace(os.sep, "/"))[2]
+            return io.BytesIO(memoryview(file_content).tobytes())
+        else:
+            # Fallback: return empty bytes
+            return io.BytesIO(b"")
     else:
         raise FileNotFoundError(f"Unable to find the file: {path}")

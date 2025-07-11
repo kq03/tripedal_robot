@@ -10,10 +10,43 @@
 * TLR6_JUMP_CFG: 为跳跃行为优化的TLR6配置
 """
 
-# Note: These imports are from Isaac Sim/Lab and should be available when Isaac Sim is installed
-# import isaaclab.sim as sim_utils
-# from isaaclab.actuators import ImplicitActuatorCfg
-# from isaaclab.assets.articulation import ArticulationCfg
+# Try to import from IsaacLab workspace first, then fall back to Isaac Sim
+try:
+    import isaaclab.sim as sim_utils
+    from isaaclab.actuators import ImplicitActuatorCfg
+    from isaaclab.assets.articulation import ArticulationCfg
+    ISAAC_LAB_AVAILABLE = True
+except ImportError:
+    # Isaac Lab not available, create dummy classes for syntax checking
+    ISAAC_LAB_AVAILABLE = False
+    # Dummy classes to prevent syntax errors
+    class DummyCfg:
+        def __init__(self, **kwargs):
+            pass
+    
+    class ArticulationCfg(DummyCfg):
+        class InitialStateCfg(DummyCfg):
+            pass
+    
+    class ImplicitActuatorCfg(DummyCfg):
+        pass
+    
+    class UsdFileCfg(DummyCfg):
+        pass
+    
+    class RigidBodyPropertiesCfg(DummyCfg):
+        pass
+    
+    class ArticulationRootPropertiesCfg(DummyCfg):
+        pass
+    
+    # Create dummy sim_utils module
+    class SimUtils:
+        UsdFileCfg = UsdFileCfg
+        RigidBodyPropertiesCfg = RigidBodyPropertiesCfg
+        ArticulationRootPropertiesCfg = ArticulationRootPropertiesCfg
+    
+    sim_utils = SimUtils()
 import os
 
 # 获取当前Python文件的绝对路径

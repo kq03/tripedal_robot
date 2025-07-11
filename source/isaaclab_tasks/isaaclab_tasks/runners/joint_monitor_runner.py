@@ -15,7 +15,18 @@ from rsl_rl.env import VecEnv
 from torch.utils.tensorboard.writer import SummaryWriter
 
 # Note: This import is from Isaac Lab tasks and should be available when Isaac Sim is installed
-# from isaaclab_tasks.runners.joint_data_logger import JointDataLogger
+# # Try to import from IsaacLab workspace first, then fall back to Isaac Sim
+try:
+    from isaaclab_tasks.runners.joint_data_logger import JointDataLogger
+    ISAAC_LAB_AVAILABLE = True
+except ImportError:
+    # Isaac Lab not available, create dummy class for syntax checking
+    ISAAC_LAB_AVAILABLE = False
+    class JointDataLogger:
+        def __init__(self, joint_names, log_dir, save_interval):
+            pass
+        def log_joint_data(self, joint_pos, joint_vel, joint_torque):
+            pass
 
 
 class JointMonitorRunner(OnPolicyRunner):

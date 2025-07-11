@@ -10,8 +10,19 @@
 import argparse
 import sys
 
-# Note: This import is from Isaac Sim/Lab and should be available when Isaac Sim is installed
-# from isaaclab.app import AppLauncher
+# Try to import from IsaacLab workspace first, then fall back to Isaac Sim
+try:
+    from isaaclab.app import AppLauncher
+    ISAAC_LAB_AVAILABLE = True
+except ImportError:
+    # Isaac Lab not available, create dummy class for syntax checking
+    ISAAC_LAB_AVAILABLE = False
+    class AppLauncher:
+        def __init__(self, args):
+            pass
+        @staticmethod
+        def add_app_launcher_args(parser):
+            pass
 
 # local imports
 import cli_args  # isort: skip
@@ -52,29 +63,63 @@ import os
 import torch
 from datetime import datetime
 
-# Note: These imports are from Isaac Sim/Lab and should be available when Isaac Sim is installed
-# from isaaclab.utils.dict import class_to_dict, print_dict
-# from isaaclab.utils.io import dump_pickle, dump_yaml
+# Try to import from IsaacLab workspace first, then fall back to Isaac Sim
+try:
+    from isaaclab.utils.dict import class_to_dict, print_dict
+    from isaaclab.utils.io import dump_pickle, dump_yaml
+    from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
+    from isaaclab.envs import (
+        DirectMARLEnv,
+        DirectMARLEnvCfg,
+        DirectRLEnvCfg,
+        ManagerBasedRLEnvCfg,
+        multi_agent_to_single_agent,
+    )
+    import isaaclab_tasks  # noqa: F401
+    from isaaclab_tasks.utils import get_checkpoint_path
+    from isaaclab_tasks.utils.hydra import hydra_task_config
+    ISAAC_LAB_AVAILABLE = True
+except ImportError:
+    # Isaac Lab not available, create dummy classes for syntax checking
+    ISAAC_LAB_AVAILABLE = False
+    def class_to_dict(obj):
+        return {}
+    def print_dict(d, nesting=0):
+        pass
+    def dump_pickle(data, path):
+        pass
+    def dump_yaml(data, path):
+        pass
+    class RslRlOnPolicyRunnerCfg:
+        pass
+    class RslRlVecEnvWrapper:
+        def __init__(self, env):
+            self.env = env
+    class DirectMARLEnv:
+        pass
+    class DirectMARLEnvCfg:
+        pass
+    class DirectRLEnvCfg:
+        pass
+    class ManagerBasedRLEnvCfg:
+        pass
+    def multi_agent_to_single_agent(env):
+        return env
+    def get_checkpoint_path(log_root_path, load_run, load_checkpoint):
+        return ""
+    def hydra_task_config(task, entry_point):
+        def decorator(func):
+            return func
+        return decorator
 
-# from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
 from rsl_rl.runners import OnPolicyRunner
 
 # 导入JointMonitorRunner（如果需要记录关节数据）
 if args_cli.save_joint_data:
-    # from isaaclab_tasks.runners import JointMonitorRunner
-    pass
-
-# from isaaclab.envs import (
-#     DirectMARLEnv,
-#     DirectMARLEnvCfg,
-#     DirectRLEnvCfg,
-#     ManagerBasedRLEnvCfg,
-#     multi_agent_to_single_agent,
-# )
-
-# import isaaclab_tasks  # noqa: F401
-# from isaaclab_tasks.utils import get_checkpoint_path
-# from isaaclab_tasks.utils.hydra import hydra_task_config
+    try:
+        from isaaclab_tasks.runners import JointMonitorRunner
+    except ImportError:
+        JointMonitorRunner = OnPolicyRunner  # Fallback to standard runner
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True

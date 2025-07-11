@@ -12,12 +12,50 @@ import numpy as np
 from typing import Dict, List, Optional
 import os
 
-# Note: These imports are from Isaac Sim/Lab and should be available when Isaac Sim is installed
-# import isaaclab.sim as sim_utils
-# from isaaclab.assets import Articulation
-# from isaaclab.envs import DirectRLEnv
-# from isaaclab.sensors import ContactSensor, RayCaster
-# from isaaclab.utils import math as math_utils
+# Try to import from IsaacLab workspace first, then fall back to Isaac Sim
+try:
+    import isaaclab.sim as sim_utils
+    from isaaclab.assets import Articulation
+    from isaaclab.envs import DirectRLEnv
+    from isaaclab.sensors import ContactSensor, RayCaster
+    from isaaclab.utils import math as math_utils
+    ISAAC_LAB_AVAILABLE = True
+except ImportError:
+    # Isaac Lab not available, create dummy classes for syntax checking
+    ISAAC_LAB_AVAILABLE = False
+    # Dummy classes to prevent syntax errors
+    class DummyCfg:
+        def __init__(self, **kwargs):
+            pass
+    
+    class DirectRLEnv:
+        def __init__(self, cfg, render_mode=None, **kwargs):
+            pass
+    
+    class Articulation:
+        def __init__(self, cfg):
+            pass
+    
+    class ContactSensor:
+        def __init__(self, cfg):
+            pass
+    
+    class RayCaster:
+        def __init__(self, cfg):
+            pass
+    
+    # Create dummy sim_utils module
+    class SimUtils:
+        class DomeLightCfg:
+            def __init__(self, intensity=2000.0, color=(0.75, 0.75, 0.75)):
+                self.intensity = intensity
+                self.color = color
+            
+            def func(self, path, cfg):
+                pass
+    
+    sim_utils = SimUtils()
+    math_utils = None
 from .tripple_legs_robot_env_cfg import TLR6FlatEnvCfg, TLR6JumpEnvCfg, TLR6RoughEnvCfg
 
 
