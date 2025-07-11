@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="TLR7_0629">
+  <link
+    name="Base_Link">
+    <inertial>
+      <origin
+        xyz="0.005748 -0.0030713 0.022212"
+        rpy="0 0 0" />
+      <mass
+        value="0.5" />
+      <inertia
+        ixx="0.00048"
+        ixy="-2.92441E-05"
+        ixz="1.75343E-06"
+        iyy="0.000558771"
+        iyz="2.33343E-08"
+        izz="0.000767034" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/Base_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/Base_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="L1_thigh_Link">
+    <inertial>
+      <origin
+        xyz="0.021433 0.016145 -0.00023498"
+        rpy="0 0 0" />
+      <mass
+        value="0.8" />
+      <inertia
+        ixx="0.000306876"
+        ixy="9.92533E-08"
+        ixz="1.27535E-05"
+        iyy="0.001563048"
+        iyz="-1.35794E-07"
+        izz="0.001307657" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L1_thigh_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L1_thigh_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L1_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="0.10392 0 0.0018"
+      rpy="0 0 0" />
+    <parent
+      link="Base_Link" />
+    <child
+      link="L1_thigh_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.04"
+      upper="2.08"
+      effort="3"
+      velocity="15" />
+  </joint>
+  <link
+    name="L1_shin_Link">
+    <inertial>
+      <origin
+        xyz="0.039171 -0.00010523 0.010727"
+        rpy="0 0 0" />
+      <mass
+        value="0.3" />
+      <inertia
+        ixx="3.41725E-05"
+        ixy="1.7933E-12"
+        ixz="-1.2547E-05"
+        iyy="0.00031339"
+        iyz="4.59085E-13"
+        izz="0.00029369" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L1_shin_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L1_shin_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L1_shin_joint"
+    type="revolute">
+    <origin
+      xyz="0.18315 0 -0.0069273"
+      rpy="0 0 0" />
+    <parent
+      link="L1_thigh_Link" />
+    <child
+      link="L1_shin_Link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="0"
+      upper="2.71"
+      effort="3.49"
+      velocity="15" />
+  </joint>
+  <link
+    name="L2_thigh_Link">
+    <inertial>
+      <origin
+        xyz="-0.024699 0.010489 -0.00023498"
+        rpy="0 0 0" />
+      <mass
+        value="0.8" />
+      <inertia
+        ixx="0.001249105"
+        ixy="0.000543886"
+        ixz="-6.25905E-06"
+        iyy="0.000620838"
+        iyz="1.1128E-05"
+        izz="0.001307657" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L2_thigh_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L2_thigh_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L2_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="-0.051961 0.09 0.0018"
+      rpy="0 0 0" />
+    <parent
+      link="Base_Link" />
+    <child
+      link="L2_thigh_Link" />
+    <axis
+      xyz="-0.86603 -0.5 0" />
+    <limit
+      lower="-1.04"
+      upper="2.08"
+      effort="3"
+      velocity="15" />
+  </joint>
+  <link
+    name="L2_shin_Link">
+    <inertial>
+      <origin
+        xyz="-0.019494 0.033976 0.010727"
+        rpy="0 0 0" />
+      <mass
+        value="0.3" />
+      <inertia
+        ixx="0.000243585"
+        ixy="0.000120905"
+        ixz="6.2735E-06"
+        iyy="0.000103975"
+        iyz="-1.0866E-05"
+        izz="0.00029369" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L2_shin_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L2_shin_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L2_shin_joint"
+    type="revolute">
+    <origin
+      xyz="-0.091574 0.15861 -0.0069273"
+      rpy="0 0 0" />
+    <parent
+      link="L2_thigh_Link" />
+    <child
+      link="L2_shin_Link" />
+    <axis
+      xyz="-0.86603 -0.5 0" />
+    <limit
+      lower="0"
+      upper="2.71"
+      effort="3.49"
+      velocity="15" />
+  </joint>
+  <link
+    name="L3_thigh_Link">
+    <inertial>
+      <origin
+        xyz="0.0032656 -0.026634 -0.00023498"
+        rpy="0 0 0" />
+      <mass
+        value="0.8" />
+      <inertia
+        ixx="0.001248914"
+        ixy="-0.000544"
+        ixz="-6.49448E-06"
+        iyy="0.00062099"
+        iyz="-1.09768E-05"
+        izz="0.001307657" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L3_thigh_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L3_thigh_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L3_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="-0.051962 -0.09 0.0018"
+      rpy="0 0 0" />
+    <parent
+      link="Base_Link" />
+    <child
+      link="L3_thigh_Link" />
+    <axis
+      xyz="0.86603 -0.5 0" />
+    <limit
+      lower="-1.04"
+      upper="2.08"
+      effort="3"
+      velocity="15" />
+  </joint>
+  <link
+    name="L3_shin_Link">
+    <inertial>
+      <origin
+        xyz="-0.019677 -0.033871 0.010727"
+        rpy="0 0 0" />
+      <mass
+        value="0.3" />
+      <inertia
+        ixx="0.000243585"
+        ixy="-0.000120905"
+        ixz="6.2735E-06"
+        iyy="0.000103975"
+        iyz="1.0866E-05"
+        izz="0.00029369" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L3_shin_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="../meshes/L3_shin_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L3_shin_joint"
+    type="revolute">
+    <origin
+      xyz="-0.091574 -0.15861 -0.0069273"
+      rpy="0 0 0" />
+    <parent
+      link="L3_thigh_Link" />
+    <child
+      link="L3_shin_Link" />
+    <axis
+      xyz="0.86603 -0.5 0" />
+    <limit
+      lower="0"
+      upper="2.71"
+      effort="3.49"
+      velocity="15" />
+  </joint>
+</robot>
