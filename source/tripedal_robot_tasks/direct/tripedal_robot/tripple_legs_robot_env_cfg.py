@@ -18,7 +18,7 @@ from isaaclab.utils import configclass
 ##
 # 预定义配置
 ##
-from isaaclab_assets.robots.tripple_legs_robot import TLR6_CFG, TLR6_JUMP_CFG  # isort: skip
+from tripedal_robot_assets.tripedal_robot_assets.tlr7_config import TLR6_CFG, TLR6_JUMP_CFG  # isort: skip
 
 @configclass
 class EventCfg:
@@ -61,7 +61,7 @@ class TLR6FlatEnvCfg(DirectRLEnvCfg):
     sim: SimulationCfg = SimulationCfg(
         dt=1 / 200,
         render_interval=decimation,
-        disable_contact_processing=True,
+        # disable_contact_processing=True,
         physics_material=sim_utils.RigidBodyMaterialCfg(
             friction_combine_mode="multiply",
             restitution_combine_mode="multiply",
@@ -169,7 +169,7 @@ class TLR6JumpEnvCfg(TLR6FlatEnvCfg):
     sim: SimulationCfg = SimulationCfg(
         dt=1 / 400,  # 更高的模拟频率，提供更精确的物理模拟
         render_interval=4,  # 直接使用数值而不是引用decimation
-        disable_contact_processing=True,
+        # disable_contact_processing=True,
         physics_material=sim_utils.RigidBodyMaterialCfg(
             friction_combine_mode="multiply",
             restitution_combine_mode="multiply",

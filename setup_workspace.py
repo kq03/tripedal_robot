@@ -79,8 +79,8 @@ def check_workspace_structure():
     
     # Check for key files
     key_files = [
-        "source/isaaclab_assets/isaaclab_assets/robots/tripple_legs_robot.py",
-        "source/isaaclab_tasks/isaaclab_tasks/direct/triiple_legs_robot/tripple_legs_robot_env.py",
+        "source/tripedal_robot_assets/tripedal_robot_assets/tlr7_config.py",
+        "source/tripedal_robot_tasks/direct/tripedal_robot/tripple_legs_robot_env.py",
         "scripts/reinforcement_learning/rsl_rl/train.py",
     ]
     

@@ -10,7 +10,10 @@
 import argparse
 import sys
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../source')))
+import tripedal_robot_tasks.direct.tripedal_robot
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../IsaacLab/scripts/reinforcement_learning/rsl_rl')))
+
 
 # Try to import from IsaacLab workspace first, then fall back to Isaac Sim
 try:

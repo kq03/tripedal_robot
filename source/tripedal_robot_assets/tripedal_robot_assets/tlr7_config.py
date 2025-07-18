@@ -5,7 +5,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 
 USD_PATH = os.path.join(os.path.dirname(__file__), "../../data/usd/TLR7_0629.usd")
 
-TLR7_CFG = ArticulationCfg(
+TLR6_CFG = ArticulationCfg(
     prim_path="{ENV_REGEX_NS}/Robot",
     spawn=sim_utils.UsdFileCfg(
         usd_path=USD_PATH,
@@ -63,7 +63,7 @@ TLR7_CFG = ArticulationCfg(
 TLR6_JUMP_CFG = ArticulationCfg(
     prim_path="{ENV_REGEX_NS}/Robot",
     spawn=sim_utils.UsdFileCfg(
-        usd_path=TLR6_USD_PATH,
+        usd_path=USD_PATH,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
             retain_accelerations=False,
