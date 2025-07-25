@@ -1,3 +1,9 @@
+<code>mkdir /tripedal_ws/src</code>
+<code>cd /tripedal_ws/src</code>
+<code>git clone https://github.com/isaac-sim/IsaacLab.git</code>
+<code>git clone this-repository</code>
+<code>IsaacLab/isaaclab.sh -p tripedal_robot/scripts/reinforcement_learning/rsl_rl/train.py --task=Isaac-Velocity-Flat-TLR6-Direct-v0 --save_joint_data</code>
+
 # Tripedal Robot Workspace
 
 This workspace is set up to work with both your custom tripedal robot project and the official Isaac Lab repository.

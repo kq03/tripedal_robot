@@ -3,7 +3,7 @@ import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
 
-USD_PATH = os.path.join(os.path.dirname(__file__), "../../data/usd/TLR7_0629.usd")
+USD_PATH = os.path.join(os.path.dirname(__file__), "/home/tangzhao/tripedal_ws/src/tripedal_robot/source/tripedal_robot_assets/data/usd/TLR7_0629.usd")
 
 TLR6_CFG = ArticulationCfg(
     prim_path="{ENV_REGEX_NS}/Robot",
